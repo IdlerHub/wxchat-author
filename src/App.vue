@@ -1,16 +1,16 @@
 <template>
-  <div id="app">
-    <!--
+<div id="app">
+  <!--
       <div>{{openid}}</div>
     -->
-    <div class="content">
-      <div class="progress-bar">
-        <div class="progress-value" :style="progressStyle"></div>
-      </div>
-      <div class="progress-number" v-if="progressStatus">加载中{{progressValue}}%</div>
-      <div class="progress-number" v-else>加载失败,请退出重进</div>
+  <div class="content">
+    <div class="progress-bar">
+      <div class="progress-value" :style="progressStyle"></div>
     </div>
+    <div class="progress-number" v-if="progressStatus">加载中{{progressValue}}%</div>
+    <div class="progress-number" v-else>加载失败,请退出重进</div>
   </div>
+</div>
 </template>
 
 <script>
@@ -19,7 +19,7 @@ import axios from "axios";
 const webURL = "https://apielb.jinlingkeji.cn/api/v23/";
 //  const webURL = "https://lndxtest.jinlingkeji.cn/api/v23/";
 // const webURL = "https://lndxpre.jinlingkeji.cn/api/v23/";
-const JSAPIAPPID = "wxbd85dc45a5a84cd8";  //网上老年大学
+const JSAPIAPPID = "wxbd85dc45a5a84cd8"; //网上老年大学
 const domainBaseUrl = 'https://authorization.jinlingkeji.cn'
 export default {
   data() {
@@ -30,6 +30,7 @@ export default {
       voteid: 0, //活动作品的id
       uid: 0, //用户id
       voteType: "", //voteIndex
+      type: "", //签到入口
       timer: null
     };
   },
@@ -57,10 +58,13 @@ export default {
   methods: {
     setData(ops) {
       this.uid = ops.uid;
-      if(ops.voteType) {  //票选活动页面过来的
+      if (ops.voteType) { //票选活动页面过来的
         this.voteType = ops.voteType;
         this.toPage = `/page/vote/pages/${ops.voteType}/${ops.voteType}`;
         this.voteid = ops.voteid || 0;
+      }
+      if (ops.type) { //活动字段识别
+        this.type = ops.type
       }
     },
     getCode() {
@@ -71,6 +75,7 @@ export default {
         let STATE = {
           voteType: this.voteType,
           voteid: this.voteid,
+          type: this.type,
           uid: this.uid,
         };
         STATE = JSON.stringify(STATE);
@@ -112,7 +117,9 @@ export default {
     },
     getJsConfig(url, openid) {
       let _this = this;
-      let params = { url };
+      let params = {
+        url
+      };
       axios
         .post(webURL + "schedule/getSignatur", params)
         .then(res => {
@@ -130,18 +137,21 @@ export default {
               _this.progressValue = 100;
               clearInterval(_this.timer)
               //获取openid之后去对应的页面
-              if(_this.voteType != '') {  //票选活动跳转页面
+              if (_this.voteType != '') { //票选活动跳转页面
                 _this.$wx.miniProgram.redirectTo({
-                  url: _this.voteid
-                    ? `${_this.toPage}?accounts_openid=${openid}&voteid=${_this.voteid}`
-                    : `${_this.toPage}?accounts_openid=${openid}`
+                  url: _this.voteid ?
+                    `${_this.toPage}?accounts_openid=${openid}&voteid=${_this.voteid}` : `${_this.toPage}?accounts_openid=${openid}`
                 });
-              }else { //直播课表订阅消息跳转页面
+              } else if (_this.type != '') {
+                if (_this.type == 'sign') { //签到入口的话,直接返回上一页
+                  _this.$wx.miniProgram.navigateBack()
+                }
+              } else { //直播课表订阅消息跳转页面
                 _this.$wx.miniProgram.redirectTo({
                   url: `/pages/education/education?liveType=wechatarticle&accounts_openid=${openid}`
                 });
               }
-              
+
             }
           });
         })
@@ -161,37 +171,54 @@ body {
   margin: 0;
   padding: 0;
 }
+
 html {
   height: 100vh;
   width: 100%;
   background: url("~@/images/loading-bg.png") no-repeat;
   background-size: 100% 100%;
 }
+
 #app {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .progress-bar {
-  width: 16.25rem /* 260/16 */;
-  height: 0.9375rem /* 15/16 */;
+  width: 16.25rem
+    /* 260/16 */
+  ;
+  height: 0.9375rem
+    /* 15/16 */
+  ;
   background: #ffd6d6;
-  border-radius: 0.9375rem /* 15/16 */;
+  border-radius: 0.9375rem
+    /* 15/16 */
+  ;
   margin: auto;
   overflow: hidden;
 }
+
 .progress-value {
   width: 50%;
   height: 100%;
   background: #f21313;
 }
+
 .progress-number {
   width: 100%;
   text-align: center;
-  margin-top: 0.9375rem /* 15/16 */;
-  height: 1.75rem /* 28/16 */;
-  font-size: 1.25rem /* 20/16 */;
+  margin-top: 0.9375rem
+    /* 15/16 */
+  ;
+  height: 1.75rem
+    /* 28/16 */
+  ;
+  font-size: 1.25rem
+    /* 20/16 */
+  ;
   font-family: PingFang-SC-Bold, PingFang-SC;
   font-weight: bold;
   color: #f21313;
