@@ -20,7 +20,7 @@ const webURL = "https://apielb.jinlingkeji.cn/api/v23/";
 //  const webURL = "https://lndxtest.jinlingkeji.cn/api/v23/";
 // const webURL = "https://lndxpre.jinlingkeji.cn/api/v23/";
 const JSAPIAPPID = "wxbd85dc45a5a84cd8"; //网上老年大学
-const domainBaseUrl = 'https://authorization.jinlingkeji.cn'
+const domainBaseUrl = 'https://globalh5pro.jinlingkeji.cn/Authorization'
 export default {
   data() {
     return {
